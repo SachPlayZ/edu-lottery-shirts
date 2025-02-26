@@ -416,7 +416,7 @@ export default function Home() {
             onClick={refreshAllData}
             disabled={isRefetching}
             variant="outline"
-            className="px-4 py-2 text-sm font-medium text-white border-purple-300 hover:bg-purple-800 transition-all duration-300"
+            className="px-4 py-2 text-sm font-medium text-purple-300 border-purple-300 hover:bg-purple-800 transition-all duration-300"
           >
             {isRefetching ? "Refreshing..." : "Refresh Data"}
           </Button>

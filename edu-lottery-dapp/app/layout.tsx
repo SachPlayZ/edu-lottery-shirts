@@ -10,8 +10,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "AgeX",
-  description: "AgeX is the next-gen NFT marketplace for Monsters",
+  title: "T-Shirt Lottery",
+  description: "T",
 };
 
 export default function RootLayout({
