@@ -8,6 +8,19 @@ const abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "uint256",
+        name: "timestamp",
+        type: "uint256",
+      },
+    ],
+    name: "LotteryReset",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: "address",
         name: "participant",
@@ -380,6 +393,13 @@ const abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "resetLottery",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "uint256",
@@ -430,4 +450,4 @@ const abi = [
 ];
 export default abi;
 
-export const contractAddress = "0x3d17cBf62d36A7a1341c7D07BB190Bfc31421245";
+export const contractAddress = "0xf5e1F9ded14De19Ae71Bc455E935Eed5A0465463";

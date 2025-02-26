@@ -52,6 +52,7 @@ contract RandomNumberRaffle {
         uint256 number
     );
     event WinnerDrawn(address indexed winner, string name, uint256 number);
+    event LotteryReset(uint256 timestamp);
 
     /**
      * @dev Sets the contract deployer as the admin
@@ -296,5 +297,29 @@ contract RandomNumberRaffle {
             }
         }
         return false;
+    }
+
+    /**
+     * @dev Resets the lottery by clearing all participants and winners
+     * Only admin can call this function
+     */
+    function resetLottery() external onlyAdmin {
+        // Clear participants mapping
+        for (uint256 i = 0; i < participantAddresses.length; i++) {
+            delete participants[participantAddresses[i]];
+        }
+
+        // Clear all arrays
+        delete participantAddresses;
+        delete winnerAddresses;
+        delete winners;
+        delete assignedNumbers;
+
+        // Clear number assignments
+        for (uint256 i = 1; i <= MAX_NUMBER; i++) {
+            numberAssigned[i] = false;
+        }
+
+        emit LotteryReset(block.timestamp);
     }
 }

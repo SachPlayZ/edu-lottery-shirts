@@ -17,6 +17,34 @@ import { toast } from "sonner";
 // Add this constant at the top of the file, outside of the Home component
 const ADMIN_ADDRESS = "0xe34b40f38217f9Dc8c3534735f7f41B2cDA73A75";
 
+// First, let's define some types at the top of the file
+type WinnerInfo = {
+  winnerAddress: `0x${string}`;
+  name: string;
+  number: bigint;
+};
+
+// Add this type helper at the top with other types
+type ErrorWithMessage = {
+  message: string;
+};
+
+function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof (error as Record<string, unknown>).message === "string"
+  );
+}
+
+function getErrorMessage(error: unknown) {
+  if (isErrorWithMessage(error)) {
+    return error.message;
+  }
+  return "Unknown error occurred";
+}
+
 export default function Home() {
   const { address, isConnected } = useAccount();
   const [name, setName] = useState("");
@@ -57,11 +85,7 @@ export default function Home() {
     functionName: "getWinnerCount",
   });
 
-  const {
-    data: isUserWinner,
-    refetch: refetchIsUserWinner,
-    isLoading: isLoadingUserWinner,
-  } = useReadContract({
+  const { data: isUserWinner, refetch: refetchIsUserWinner } = useReadContract({
     abi,
     address: contractAddress,
     functionName: "isWinner",
@@ -146,11 +170,9 @@ export default function Home() {
         functionName: "enterRaffle",
         args: [name],
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error entering raffle:", error);
-      toast.error(
-        `Failed to enter raffle: ${error?.message || "Unknown error"}`
-      );
+      toast.error(`Failed to enter raffle: ${getErrorMessage(error)}`);
     }
   };
 
@@ -166,11 +188,28 @@ export default function Home() {
         address: contractAddress,
         functionName: "drawWinner",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error drawing winner:", error);
-      toast.error(
-        `Failed to draw winner: ${error?.message || "Unknown error"}`
-      );
+      toast.error(`Failed to draw winner: ${getErrorMessage(error)}`);
+    }
+  };
+
+  // Add this new function to handle lottery reset
+  const handleResetLottery = async () => {
+    if (!address) {
+      toast.error("Please connect your wallet first");
+      return;
+    }
+
+    try {
+      writeContract({
+        abi,
+        address: contractAddress,
+        functionName: "resetLottery",
+      });
+    } catch (error: unknown) {
+      console.error("Error resetting lottery:", error);
+      toast.error(`Failed to reset lottery: ${getErrorMessage(error)}`);
     }
   };
 
@@ -295,7 +334,7 @@ export default function Home() {
                 </p>
               </>
             ) : (
-              <p>You haven't entered the lottery yet.</p>
+              <p>You haven&apos;t entered the lottery yet.</p>
             )}
           </div>
         )}
@@ -309,19 +348,19 @@ export default function Home() {
               <div className="animate-pulse h-6 bg-purple-700 rounded w-1/2 mx-auto"></div>
               <div className="animate-pulse h-6 bg-purple-700 rounded w-2/3 mx-auto"></div>
             </div>
-          ) : latestWinner && (latestWinner as any).winnerAddress ? (
+          ) : latestWinner && (latestWinner as WinnerInfo).winnerAddress ? (
             <>
               <p className="mb-2 break-words">
                 <span className="font-semibold">Address:</span>{" "}
-                {(latestWinner as any).winnerAddress}
+                {(latestWinner as WinnerInfo).winnerAddress}
               </p>
               <p className="mb-2">
                 <span className="font-semibold">Name:</span>{" "}
-                {(latestWinner as any).name}
+                {(latestWinner as WinnerInfo).name}
               </p>
               <p className="mb-2">
                 <span className="font-semibold">Number:</span>{" "}
-                {(latestWinner as any).number.toString()}
+                {(latestWinner as WinnerInfo).number.toString()}
               </p>
             </>
           ) : (
@@ -333,12 +372,22 @@ export default function Home() {
         {isAdmin && (
           <div className="p-6 bg-purple-900 bg-opacity-80 rounded-lg shadow-md mt-8 border border-purple-500 text-white">
             <h2 className="text-2xl mb-4 font-bold">Admin Actions</h2>
-            <button
-              onClick={handleDrawWinner}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Draw Winner
-            </button>
+            <div className="space-x-4">
+              <button
+                onClick={handleDrawWinner}
+                disabled={isPending || isConfirming}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isPending || isConfirming ? "Processing..." : "Draw Winner"}
+              </button>
+              <button
+                onClick={handleResetLottery}
+                disabled={isPending || isConfirming}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isPending || isConfirming ? "Processing..." : "Reset Lottery"}
+              </button>
+            </div>
           </div>
         )}
 
